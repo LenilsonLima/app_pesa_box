@@ -9,7 +9,7 @@ import colors from '../../../assets/colors.json';
 import { useFonts, Poppins_400Regular, Poppins_400Regular_Italic, Poppins_600SemiBold_Italic } from "@expo-google-fonts/poppins";
 import colmeia from "../../../assets/colmeia.png";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { handleConfiguracoesRede, handleReiniciarBalanca, handleResetarRede, handleTararBalanca } from "./FuncoesCaixas";
+import { handleConfiguracoesRede, handleDeletarCaixaConfirmar, handleReiniciarBalanca, handleResetarRede, handleTararBalanca } from "./FuncoesCaixas";
 import NotFound from "../../../components/NotFound";
 import Api from "../../../api";
 import { navigate, navigateGoBack } from "../../../navigationRef";
@@ -276,6 +276,17 @@ const ListarCaixas = () => {
                                     <Text style={styles.opcoesLabel}>Reiniciar</Text>
                                     <View style={styles.botaoOpcao}>
                                         <MaterialIcons name="power-settings-new" size={25} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        setOpenCloseDadosAndOpcoes(false);
+                                        handleDeletarCaixaConfirmar(caixaClicada, setLoading, requestCaixas);
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Deletar</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <MaterialIcons name="delete" size={25} color="#fff" />
                                     </View>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.opcoesLabelWrapper} onPress={() => setOpenCloseDadosAndOpcoes(false)}>
