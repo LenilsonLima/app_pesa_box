@@ -2,9 +2,10 @@
 const BASE_URL_SERVER_RASP = 'http://192.168.0.1:5002/raspberry/'
 
 const ApiUrl = {
-    urlApicultor: 'apicultor',
-    urlLogin: 'apicultor/login',
-    urlTrocaSenha: 'apicultor/token_senha',
+    urlApicultor: 'usuario',
+    urlApicultorBlock: 'usuario/block',
+    urlLogin: 'usuario/login',
+    urlTrocaSenha: 'usuario/token_senha',
     urlCaixa: 'caixa',
     urlPesosCaixa: 'peso-caixa/pesos',
     urlPesosCaixaRelatorio: 'peso-caixa',

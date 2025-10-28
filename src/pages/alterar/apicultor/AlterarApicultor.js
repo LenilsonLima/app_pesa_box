@@ -68,7 +68,7 @@ const AlterarApicultor = () => {
 
             const response = await Api.put(ApiUrl.urlApicultor, body);
             await AsyncStorage.setItem('@pesa_box_nome', nome);
-            
+
             Alert.alert('SUCESSO', response?.data?.retorno?.mensagem, [
                 { text: 'Voltar ao início', onPress: () => navigateGoBack() }
             ]);
@@ -80,10 +80,10 @@ const AlterarApicultor = () => {
         }
     };
 
-    const handleConfirmarApagarConta = () => {
+    const handleConfirmarDesativarConta = () => {
         Alert.alert(
             'ATENÇÃO',
-            'Tem certeza de que deseja excluir sua conta? Todos os dados das caixas e registros de peso serão permanentemente apagados. Esta ação é irreversível.',
+            'Ao confirmar, você concorda em desativar este usuário e bloquear todas as suas permissões de acesso na plataforma.',
             [
                 { text: 'Cancelar', style: 'cancel' },
                 { text: 'Confirmar', style: 'destructive', onPress: () => handleApagarConta() }
@@ -95,7 +95,7 @@ const AlterarApicultor = () => {
         try {
             setLoading(true);
 
-            const response = await Api.delete(ApiUrl.urlApicultor);
+            const response = await Api.put(ApiUrl.urlApicultorBlock, {});
 
             AsyncStorage.clear();
             Alert.alert('SUCESSO', response?.data?.retorno?.mensagem, [
@@ -167,9 +167,9 @@ const AlterarApicultor = () => {
                                     <View style={styles.cardFooter}>
                                         <TouchableOpacity
                                             style={[styles.button, { backgroundColor: colors.red }]}
-                                            onPress={handleConfirmarApagarConta}
+                                            onPress={handleConfirmarDesativarConta}
                                         >
-                                            <Text style={[styles.buttonText, { color: colors.white }]}>Apagar Minha Conta</Text>
+                                            <Text style={[styles.buttonText, { color: colors.white }]}>Desativar Minha Conta</Text>
                                             <MaterialIcons name="chevron-right" size={20} color={colors.white} />
                                         </TouchableOpacity>
                                     </View>
