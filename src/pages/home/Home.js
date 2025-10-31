@@ -1,10 +1,9 @@
 import { StyleSheet, Text, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, Image } from "react-native";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { MaterialIcons, Feather, AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HeaderComponent from "../../components/HeaderComponent";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import LoadingComponent from "../../components/LoadingComponent";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import colors from '../../assets/colors.json';
@@ -12,14 +11,14 @@ import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_600SemiBold_
 import colmeia from "../../assets/colmeia.png";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NotFound from "../../components/NotFound";
-import Api from "../../api";
+import ApiAxiosWeb from "../../apiAxiosWeb";
 import { navigate, navigateReset } from "../../navigationRef";
-import ApiUrl from "../../apiUrl";
 const { width } = Dimensions.get("window");
 
 const Home = () => {
     const [caixas, setCaixas] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [openCloseOpcoes, setOpenCloseOpcoes] = useState(false);
 
     const [fontsLoaded] = useFonts({
         Poppins_400Regular,
@@ -27,19 +26,20 @@ const Home = () => {
         Poppins_600SemiBold_Italic,
     });
 
-    useFocusEffect(useCallback(() => {
-        const handleObterCaixasLocal = async () => {
-            try {
-                setLoading(true);
-                const caixas_local = await AsyncStorage.getItem('@pesa_box_caixas_pendentes');
-                setCaixas(JSON.parse(caixas_local) || []);
-            } catch (error) {
-                console.log(error);
-                Alert.alert('ATENÇÃO', 'Falha ao buscar caixas pendentes, tente novamente.');
-            } finally {
-                setLoading(false);
-            }
+    const handleObterCaixasLocal = async () => {
+        try {
+            setLoading(true);
+            const caixas_local = await AsyncStorage.getItem('@pesa_box_caixas_pendentes');
+            setCaixas(JSON.parse(caixas_local) || []);
+        } catch (error) {
+            console.log(error);
+            Alert.alert('ATENÇÃO', 'Falha ao buscar caixas pendentes, tente novamente.');
+        } finally {
+            setLoading(false);
         }
+    }
+
+    useFocusEffect(useCallback(() => {
         handleObterCaixasLocal();
     }, []));
 
@@ -51,8 +51,7 @@ const Home = () => {
                 { text: 'Fechar', onPress: null },
                 {
                     text: 'Deslogar', onPress: async () => {
-                        await AsyncStorage.removeItem('@pesa_box_token');
-                        await AsyncStorage.removeItem('@pesa_box_nome');
+                        await AsyncStorage.clear();
                         navigateReset("Login");
                     }
                 }
@@ -103,9 +102,9 @@ const Home = () => {
         try {
             setLoading(true);
             const response = caixa?.caixa_id > 0 ?
-                await Api.put(ApiUrl.urlCaixa, caixa)
+                await ApiAxiosWeb.put('/caixa', caixa)
                 :
-                await Api.post(ApiUrl.urlCaixa, caixa);
+                await ApiAxiosWeb.post('/caixa', caixa);
 
             let caixas_local = JSON.parse(await AsyncStorage.getItem('@pesa_box_caixas_pendentes')) || [];
             caixas_local = caixas_local.filter(item => item?.identificador_balanca !== caixa?.identificador_balanca);
@@ -127,6 +126,22 @@ const Home = () => {
         }
     };
 
+    // useEffect(() => {
+    //     const addCaixaTemp = async () => {
+    //         const novaCaixa = {
+    //             identificador_balanca: '000000005913b540',
+    //             observacao: 'Próximo à árvores de jacarandá alterado',
+    //             limite_peso: 25,
+    //             caixa_id: 12,
+    //         };
+    //         await AsyncStorage.setItem('@pesa_box_caixas_pendentes', JSON.stringify([novaCaixa]));
+    //     }
+    //     addCaixaTemp();
+    // }, []);
+
+    const handleCloseOpcoes = () => {
+        setOpenCloseOpcoes(false);
+    }
     return (
         <KeyboardAvoidingView
             style={styles.keyboardAvoidingView}
@@ -136,7 +151,7 @@ const Home = () => {
                 <LoadingComponent />
                 :
                 <>
-                    <HeaderComponent icone={<Feather name="user" size={25} color={colors.dark} />} funcao={() => navigate('AlterarApicultor')} />
+                    <HeaderComponent />
                     <ScrollView
                         contentContainerStyle={styles.scrollView}
                         keyboardShouldPersistTaps="handled"
@@ -153,23 +168,6 @@ const Home = () => {
                                     <Text style={styles.cardText}>
                                         Gerencie e acompanhe suas caixas com praticidade. Suas informações estarão sempre organizadas e acessíveis.
                                     </Text>
-
-                                    <View style={styles.cardFooter}>
-                                        <TouchableOpacity
-                                            style={styles.buttonPrimary}
-                                            onPress={() => navigate("ListarCaixas")}
-                                        >
-                                            <Text style={styles.buttonText}>Configurações de Caixas</Text>
-                                            <Ionicons name="settings-outline" size={22} color={colors.dark} />
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    <View style={styles.cardFooter}>
-                                        <TouchableOpacity style={styles.buttonSecondary} onPress={logout}>
-                                            <Text style={[styles.buttonText, { color: colors.white }]}>Sair</Text>
-                                            <AntDesign name="logout" size={20} color={colors.white} />
-                                        </TouchableOpacity>
-                                    </View>
                                 </View>
 
                                 {/* Cartão e listagem de caixas */}
@@ -220,6 +218,69 @@ const Home = () => {
                             </View>
                         </SafeAreaView>
                     </ScrollView>
+
+                    {/* OPÇÕES */}
+                    {openCloseOpcoes ? (
+                        <View style={styles.opcoesContainer}>
+                            <TouchableOpacity style={styles.overlay} onPress={handleCloseOpcoes} />
+                            <View style={styles.opcoesBotoesContainer}>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        handleObterCaixasLocal();
+                                        handleCloseOpcoes();
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Recarregar Lista</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <Ionicons name="reload" size={25} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        setOpenCloseOpcoes(false);
+                                        navigate("ListarCaixas");
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Listar Caixas</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <Feather name="list" size={23} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        setOpenCloseOpcoes(false);
+                                        navigate('AlterarApicultor');
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Meu Perfil</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <Feather name="user" size={23} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        setOpenCloseOpcoes(false);
+                                        logout();
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Deslogar</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <AntDesign name="logout" size={22} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper} onPress={() => handleCloseOpcoes()}>
+                                    <Text style={styles.opcoesLabel}>Fechar</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <MaterialIcons name="close" size={25} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : (
+                        <TouchableOpacity style={styles.botaoMenu} onPress={() => setOpenCloseOpcoes(true)}>
+                            <MaterialIcons name="menu" size={25} color="#fff" />
+                        </TouchableOpacity>
+                    )}
                 </>
             }
         </KeyboardAvoidingView>
@@ -287,41 +348,6 @@ export const styles = StyleSheet.create({
         lineHeight: 20,
         fontFamily: 'Poppins_400Regular'
     },
-    cardFooter: {
-        borderTopWidth: 1,
-        borderColor: colors.borderColor,
-        height: 60,
-        paddingHorizontal: 5,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-
-    // === BUTTONS ===
-    buttonPrimary: {
-        flexDirection: "row",
-        paddingHorizontal: 10,
-        backgroundColor: colors.yellow,
-        height: 50,
-        width: "100%",
-        borderRadius: 5,
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    buttonSecondary: {
-        flexDirection: "row",
-        paddingHorizontal: 10,
-        backgroundColor: colors.red,
-        height: 50,
-        width: "100%",
-        borderRadius: 5,
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    buttonText: {
-        color: colors.dark,
-        fontSize: 12,
-        fontFamily: 'Poppins_400Regular'
-    },
 
     // === LISTAGEM DE CAIXAS ===
     caixaGroup: {
@@ -367,5 +393,63 @@ export const styles = StyleSheet.create({
     caixaIcon: {
         fontSize: 25,
         color: colors.dark,
+    },
+
+    // OPÇÕES FLOAT
+    opcoesContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%'
+    },
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+        opacity: 0.5
+    },
+    opcoesBotoesContainer: {
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        gap: width < 400 ? 5 : 10,
+        position: 'absolute',
+        bottom: width < 400 ? 5 : 10,
+        right: width < 400 ? 5 : 10
+    },
+    opcoesLabelWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5
+    },
+    opcoesLabel: {
+        backgroundColor: '#f2f2f2',
+        padding: 5,
+        borderRadius: 15,
+        paddingHorizontal: 20,
+        fontSize: 10,
+        fontFamily: 'Poppins_400Regular_Italic'
+    },
+    botaoOpcao: {
+        backgroundColor: colors.orange,
+        height: 50,
+        width: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    botaoMenu: {
+        position: 'absolute',
+        bottom: width < 400 ? 5 : 10,
+        right: width < 400 ? 5 : 10,
+        backgroundColor: colors.orange,
+        height: 50,
+        width: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 });

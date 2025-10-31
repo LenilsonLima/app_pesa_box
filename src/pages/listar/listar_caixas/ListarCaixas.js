@@ -11,9 +11,8 @@ import colmeia from "../../../assets/colmeia.png";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { handleConfiguracoesRede, handleDeletarCaixaConfirmar, handleReiniciarBalanca, handleResetarRede, handleTararBalanca } from "./FuncoesCaixas";
 import NotFound from "../../../components/NotFound";
-import Api from "../../../api";
+import ApiAxiosWeb from "../../../apiAxiosWeb";
 import { navigate, navigateGoBack } from "../../../navigationRef";
-import ApiUrl from "../../../apiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -48,7 +47,7 @@ const ListarCaixas = () => {
         };
 
         try {
-            const response = await Api.get(`${ApiUrl.urlCaixa}/filtro`, params);
+            const response = await ApiAxiosWeb.get(`/caixa/filtro`, params);
             const pesa_box_caixas_sincronizadas = response.data.registros || [];
             await AsyncStorage.setItem('@pesa_box_caixas_sincronizadas', JSON.stringify(pesa_box_caixas_sincronizadas));
             setCaixas(pesa_box_caixas_sincronizadas);

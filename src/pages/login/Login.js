@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View, TextInput, KeyboardAvoidingView, Platform, Alert, ScrollView, Dimensions } from "react-native";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState } from "react";
 import LoadingComponent from "../../components/LoadingComponent";
@@ -7,9 +7,8 @@ import HeaderComponent from "../../components/HeaderComponent";
 import colors from '../../assets/colors.json';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold_Italic } from "@expo-google-fonts/poppins";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Api from "../../api";
+import ApiAxiosWeb from "../../apiAxiosWeb";
 import { navigate, navigateReset } from "../../navigationRef";
-import ApiUrl from "../../apiUrl";
 const { width } = Dimensions.get("window");
 
 const Login = () => {
@@ -21,11 +20,12 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [openCloseOpcoes, setOpenCloseOpcoes] = useState(false);
 
     // requesr login
     const handleLogin = async () => {
         if (!usuario || !password) {
-            return Alert.alert("ATENÇÃO", "Todos os campos devem ser preenchidos!");
+            return Alert.alert("ATENÇÃO", "Todos os campos devem ser preenchidos!", [{ text: 'fechar', onPress: null }]);
         }
 
         setLoading(true);
@@ -33,7 +33,7 @@ const Login = () => {
         try {
             const body = { email: usuario, senha: password };
 
-            const response = await Api.post(ApiUrl.urlLogin, body);
+            const response = await ApiAxiosWeb.post('/usuario/login', body);
 
             await AsyncStorage.setItem("@pesa_box_token", response.data.registros.token);
             await AsyncStorage.setItem("@pesa_box_nome", response.data.registros.nome);
@@ -49,6 +49,10 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+    const handleCloseOpcoes = () => {
+        setOpenCloseOpcoes(false);
+    }
 
     return (
         <KeyboardAvoidingView
@@ -93,7 +97,7 @@ const Login = () => {
                                             value={password}
                                             onChangeText={setPassword}
                                             secureTextEntry={!passwordVisible}
-                                            placeholder="Password"
+                                            placeholder="Senha"
                                             style={styles.input}
                                         />
                                         <MaterialIcons
@@ -107,23 +111,55 @@ const Login = () => {
                                     <View style={styles.cardFooter}>
                                         <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
                                             <Text style={styles.buttonText}>Entrar</Text>
-                                            <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                {/* Card de esqueci a senha */}
-                                <View style={styles.card}>
-                                    <View style={styles.cardFooterNoBorder}>
-                                        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigate("SolicitarTrocarSenha")}>
-                                            <Text style={[styles.buttonText, { color: colors.white }]}>Esqueceu a senha</Text>
-                                            <Ionicons name="key" size={20} color={colors.white} />
+                                            <MaterialIcons name="chevron-right" size={20} color={colors.white} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                             </View>
                         </SafeAreaView>
                     </ScrollView>
+
+
+                    {/* OPÇÕES */}
+                    {openCloseOpcoes ? (
+                        <View style={styles.opcoesContainer}>
+                            <TouchableOpacity style={styles.overlay} onPress={handleCloseOpcoes} />
+                            <View style={styles.opcoesBotoesContainer}>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        navigate('SolicitarTrocarSenha');
+                                        setOpenCloseOpcoes(false);
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Esqueci minha senha</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <MaterialIcons name="lock-outline" size={22} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper}
+                                    onPress={() => {
+                                        navigate('CadastrarApicultor');
+                                        setOpenCloseOpcoes(false);
+                                    }}
+                                >
+                                    <Text style={styles.opcoesLabel}>Criar nova conta</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <MaterialIcons name="add" size={25} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.opcoesLabelWrapper} onPress={() => handleCloseOpcoes()}>
+                                    <Text style={styles.opcoesLabel}>Fechar</Text>
+                                    <View style={styles.botaoOpcao}>
+                                        <MaterialIcons name="close" size={25} color="#fff" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : (
+                        <TouchableOpacity style={styles.botaoMenu} onPress={() => setOpenCloseOpcoes(true)}>
+                            <MaterialIcons name="menu" size={25} color="#fff" />
+                        </TouchableOpacity>
+                    )}
                 </>
             )}
         </KeyboardAvoidingView>
@@ -187,12 +223,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    cardFooterNoBorder: {
-        height: 60,
-        paddingHorizontal: 5,
-        alignItems: "center",
-        justifyContent: "center",
-    },
 
     // === INPUT ===
     inputGroup: {
@@ -218,17 +248,7 @@ const styles = StyleSheet.create({
     primaryButton: {
         flexDirection: "row",
         paddingHorizontal: 10,
-        backgroundColor: colors.yellow,
-        height: 50,
-        width: "100%",
-        borderRadius: 5,
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    secondaryButton: {
-        flexDirection: "row",
-        paddingHorizontal: 10,
-        backgroundColor: colors.red,
+        backgroundColor: colors.orange,
         height: 50,
         width: "100%",
         borderRadius: 5,
@@ -236,8 +256,66 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
     },
     buttonText: {
-        color: colors.dark,
+        color: colors.white,
         fontSize: 12,
         fontFamily: 'Poppins_400Regular'
+    },
+
+    // OPÇÕES FLOAT
+    opcoesContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%'
+    },
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+        opacity: 0.5
+    },
+    opcoesBotoesContainer: {
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        gap: width < 400 ? 5 : 10,
+        position: 'absolute',
+        bottom: width < 400 ? 5 : 10,
+        right: width < 400 ? 5 : 10
+    },
+    opcoesLabelWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5
+    },
+    opcoesLabel: {
+        backgroundColor: '#f2f2f2',
+        padding: 5,
+        borderRadius: 15,
+        paddingHorizontal: 20,
+        fontSize: 10,
+        fontFamily: 'Poppins_400Regular_Italic'
+    },
+    botaoOpcao: {
+        backgroundColor: colors.orange,
+        height: 50,
+        width: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    botaoMenu: {
+        position: 'absolute',
+        bottom: width < 400 ? 5 : 10,
+        right: width < 400 ? 5 : 10,
+        backgroundColor: colors.orange,
+        height: 50,
+        width: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 });

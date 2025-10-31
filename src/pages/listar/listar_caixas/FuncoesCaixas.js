@@ -1,6 +1,6 @@
 import { Alert } from "react-native";
-import Api from "../../../api";
-import ApiUrl from "../../../apiUrl";
+import ApiAxiosWeb from "../../../apiAxiosWeb";
+import ApiAxiosServidorRaspberry from "../../../apiAxiosServidorRaspberry";
 
 // Função genérica de alerta de confirmação
 const showConfirmAlert = (titulo, mensagem, onConfirm) => {
@@ -14,7 +14,7 @@ const showConfirmAlert = (titulo, mensagem, onConfirm) => {
 const handleRequestAction = async (url, identificador, setLoading, mensagemSucesso, delay = 0) => {
     try {
         setLoading(true);
-        const response = await Api.get(url, {
+        const response = await ApiAxiosServidorRaspberry.get(url, {
             params: { identificador_balanca: identificador },
             timeout: 5000
         });
@@ -40,6 +40,24 @@ const handleRequestAction = async (url, identificador, setLoading, mensagemSuces
     }
 };
 
+// Tarar balança
+export const handleTararBalanca = (caixa, setLoading) => {
+    showConfirmAlert(
+        "ATENÇÃO",
+        `Tarar a balança da caixa "${caixa?.observacao}" vai ajustar o peso para zero. Deseja continuar?`,
+        () => handleRequestAction('/tarar-balanca', caixa?.identificador_balanca, setLoading, "Balança tarada com sucesso!", 5000)
+    );
+};
+
+// Resetar rede
+export const handleResetarRede = (caixa, setLoading) => {
+    showConfirmAlert(
+        "ATENÇÃO",
+        `Resetar a rede da caixa "${caixa?.observacao}" vai restaurar todas as configurações de rede para o padrão. Deseja continuar?`,
+        () => handleRequestAction('/modo-ap-reboot', caixa?.identificador_balanca, setLoading, "Rede resetada com sucesso!")
+    );
+};
+
 // Configuração de rede
 export const handleConfiguracoesRede = (caixa, navigate) => {
     showConfirmAlert(
@@ -49,30 +67,13 @@ export const handleConfiguracoesRede = (caixa, navigate) => {
     );
 };
 
-// Resetar rede
-export const handleResetarRede = (caixa, setLoading) => {
-    showConfirmAlert(
-        "ATENÇÃO",
-        `Resetar a rede da caixa "${caixa?.observacao}" vai restaurar todas as configurações de rede para o padrão. Deseja continuar?`,
-        () => handleRequestAction(ApiUrl.urlResetWifi, caixa?.identificador_balanca, setLoading, "Rede resetada com sucesso!")
-    );
-};
-
-// Tarar balança
-export const handleTararBalanca = (caixa, setLoading) => {
-    showConfirmAlert(
-        "ATENÇÃO",
-        `Tarar a balança da caixa "${caixa?.observacao}" vai ajustar o peso para zero. Deseja continuar?`,
-        () => handleRequestAction(ApiUrl.urlTararBalanca, caixa?.identificador_balanca, setLoading, "Balança tarada com sucesso!", 5000)
-    );
-};
 
 // Reiniciar balança
 export const handleReiniciarBalanca = (caixa, setLoading) => {
     showConfirmAlert(
         "ATENÇÃO",
         `Reiniciar a caixa "${caixa?.observacao}" fará com que o equipamento reinicie. Deseja continuar?`,
-        () => handleRequestAction(ApiUrl.urlRebootBalanca, caixa?.identificador_balanca, setLoading, "Caixa reiniciada com sucesso!")
+        () => handleRequestAction('/reiniciar', caixa?.identificador_balanca, setLoading, "Caixa reiniciada com sucesso!")
     );
 };
 
@@ -81,16 +82,16 @@ export const handleDeletarCaixaConfirmar = (caixa, setLoading, requestCaixas) =>
     showConfirmAlert(
         "ATENÇÃO",
         `Tem certeza que deseja excluir a caixa "${caixa?.observacao}"? Essa ação também removerá todos os pesos vinculados e não poderá ser desfeita.`,
-        () => handleDeletarCaixa(ApiUrl.urlCaixa, caixa?.id, setLoading, "Caixa excluída com sucesso!", requestCaixas)
+        () => handleDeletarCaixa(caixa?.id, setLoading, "Caixa excluída com sucesso!", requestCaixas)
     );
 };
 
 // Função genérica para executar requests Axios
-const handleDeletarCaixa = async (url, caixa_id, setLoading, mensagemSucesso, requestCaixas, delay = 0) => {
+const handleDeletarCaixa = async (caixa_id, setLoading, mensagemSucesso, requestCaixas, delay = 0) => {
     try {
         setLoading(true);
 
-        const response = await Api.delete(url, {
+        const response = await ApiAxiosWeb.delete('/caixa', {
             params: { caixa_id },
             timeout: 5000,
         });

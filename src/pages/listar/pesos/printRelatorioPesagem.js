@@ -2,18 +2,17 @@ import * as Print from "expo-print";
 import { shareAsync } from "expo-sharing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
-import Api from "../../../api";
-import ApiUrl from "../../../apiUrl";
+import ApiAxiosWeb from "../../../apiAxiosWeb";
 
 // URL da sua API (ajuste conforme o seu backend)
-const API_URL = ApiUrl.urlPesosCaixaRelatorio;
+const API_URL = '/peso-caixa';
 
 export const gerarRelatorioPesagem = async (caixa_id, data_inicial, data_final) => {
   try {
     const token = await AsyncStorage.getItem("@pesa_box_token");
     if (!token) throw new Error("Token de autenticação não encontrado");
 
-    const response = await Api.get(API_URL, { params: { caixa_id, data_inicial, data_final } });
+    const response = await ApiAxiosWeb.get(API_URL, { params: { caixa_id, data_inicial, data_final } });
 
     const dados = response.data?.registros || [];
     if (dados.length === 0) throw new Error("Nenhum registro encontrado.");

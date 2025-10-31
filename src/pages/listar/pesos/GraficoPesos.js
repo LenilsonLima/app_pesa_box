@@ -11,9 +11,8 @@ import { useFonts, Poppins_400Regular, Poppins_400Regular_Italic, Poppins_600Sem
 import { gerarRelatorioPesagem } from './printRelatorioPesagem';
 import DataFilter from './DataFilter';
 import NotFound from '../../../components/NotFound';
-import Api from '../../../api';
+import ApiAxiosWeb from '../../../apiAxiosWeb';
 import { navigate, navigateGoBack } from '../../../navigationRef';
-import ApiUrl from '../../../apiUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -150,7 +149,7 @@ const GraficoPesosCustom = () => {
             };
 
             try {
-                const response = await Api.get(ApiUrl.urlPesosCaixa, params);
+                const response = await ApiAxiosWeb.get('/peso-caixa/pesos', params);
                 setRegistros(response.data.registros);
             } catch (error) {
                 setErrorMsg(error.response.data.retorno.mensagem || error.message);

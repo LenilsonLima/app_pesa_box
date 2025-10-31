@@ -7,9 +7,8 @@ import colors from '../../../assets/colors.json';
 import LoadingComponent from "../../../components/LoadingComponent";
 import { useCallback, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Api from "../../../api";
+import ApiAxiosWeb from "../../../apiAxiosWeb";
 import { navigateGoBack } from "../../../navigationRef";
-import ApiUrl from "../../../apiUrl";
 
 const { width } = Dimensions.get('window');
 const AnaliseIA = () => {
@@ -28,7 +27,7 @@ const AnaliseIA = () => {
     const requestAnaliseIA = async () => {
         try {
             setLoading(true);
-            const response = await Api.post(ApiUrl.urlPesosCaixaAnaliseIA, dados);
+            const response = await ApiAxiosWeb.post('/peso-caixa/analise-ia', dados);
             setRegistrosAnaliseIA(response.data.registros);
         } catch (error) {
             console.log(error.response.data);

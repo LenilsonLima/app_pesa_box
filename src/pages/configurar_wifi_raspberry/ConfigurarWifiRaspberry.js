@@ -8,9 +8,8 @@ import LoadingComponent from "../../components/LoadingComponent";
 import colors from '../../assets/colors.json';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold_Italic } from "@expo-google-fonts/poppins";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Api from "../../api";
+import ApiAxiosWeb from "../../apiAxiosWeb";
 import { navigate, navigateGoBack } from "../../navigationRef";
-import ApiUrl from "../../apiUrl";
 const { width } = Dimensions.get("window");
 
 const ConfigurarWifiRaspberry = () => {
@@ -59,7 +58,7 @@ const ConfigurarWifiRaspberry = () => {
         try {
             const body = { ssid, password };
 
-            const response = await Api.post(ApiUrl.urlConectarCaixaWifi, body);
+            const response = await ApiAxiosWeb.post('http://192.168.0.1:5002/raspberry/conectar-wifi', body);
 
             // pega o serial retornado
             const serial = response.data?.registros?.[0]?.serial;
@@ -185,7 +184,7 @@ const ConfigurarWifiRaspberry = () => {
                                     <View style={styles.cardFooter}>
                                         <TouchableOpacity style={styles.button} onPress={handleGravarCaixa}>
                                             <Text style={styles.buttonText}>Salvar Configuração da Caixa</Text>
-                                            <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
+                                            <MaterialIcons name="chevron-right" size={20} color={colors.white} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -281,7 +280,7 @@ const styles = StyleSheet.create({
     button: {
         flexDirection: "row",
         paddingHorizontal: 10,
-        backgroundColor: colors.yellow,
+        backgroundColor: colors.orange,
         height: 50,
         width: "100%",
         borderRadius: 5,
@@ -289,7 +288,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
     },
     buttonText: {
-        color: colors.dark,
+        color: colors.white,
         fontSize: 12,
         fontFamily: 'Poppins_400Regular'
     },

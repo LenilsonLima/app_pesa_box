@@ -1,35 +1,43 @@
 import { StyleSheet, Text, TouchableOpacity, View, TextInput, KeyboardAvoidingView, Platform, Alert, ScrollView, Dimensions } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
 import { useState } from "react";
-import LoadingComponent from "../../components/LoadingComponent";
-import HeaderComponent from "../../components/HeaderComponent";
-import colors from '../../assets/colors.json';
+import LoadingComponent from "../../../components/LoadingComponent";
+import HeaderComponent from "../../../components/HeaderComponent";
+import colors from '../../../assets/colors.json';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold_Italic } from "@expo-google-fonts/poppins";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ApiAxiosWeb from "../../apiAxiosWeb";
-import { navigateGoBack } from "../../navigationRef";
+import ApiAxiosWeb from "../../../apiAxiosWeb";
+import { navigateGoBack } from "../../../navigationRef";
 const { width } = Dimensions.get("window");
 
-const SolicitarTrocarSenha = () => {
+const CadastrarApicultor = () => {
     const [fontsLoaded] = useFonts({
         Poppins_400Regular,
         Poppins_600SemiBold_Italic
     });
-    const [usuario, setUsuario] = useState("");
+    const [nome, setNome] = useState("");
+    const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [password, setPassword] = useState("");
+    const [confirmarpassword, setConfirmarPassword] = useState("");
 
     // request para solicitar link de troca de senha
     const handleEnviarEmail = async () => {
-        if (!usuario) {
-            return Alert.alert("ATENÇÃO", "Por favor, preencha seu e-mail para prosseguir.");
+        if (password?.length < 4 || password != confirmarpassword) {
+            return Alert.alert("ATENÇÃO", "Os campos senha e confirmar senha devem se iguais e conter ao menos 4 caracteres.", [{ text: 'fechar', onPress: null }]);
+        }
+
+        if (!nome || !email) {
+            return Alert.alert("ATENÇÃO", "Por favor, preencha todos os campos para prosseguir.", [{ text: 'fechar', onPress: null }]);
         }
 
         try {
             setLoading(true);
 
-            const body = { email: usuario };
+            const body = { email, nome, senha: password };
 
-            const response = await ApiAxiosWeb.post('/usuario/token_senha', body);
+            const response = await ApiAxiosWeb.post('/usuario', body);
 
             let mensagem = response?.data?.retorno?.mensagem;
 
@@ -63,18 +71,28 @@ const SolicitarTrocarSenha = () => {
                             <View style={styles.content}>
                                 <View style={styles.card}>
                                     <View style={styles.cardHeader}>
-                                        <Text style={styles.cardTitle}>Redefinir Senha</Text>
+                                        <Text style={styles.cardTitle}>Criar Apicultor</Text>
                                         <MaterialIcons name="hive" size={25} color="orange" />
                                     </View>
 
                                     <Text style={styles.cardDescription}>
-                                        Informe o e-mail que você utiliza para acessar o sistema. Enviaremos um link com instruções para que você possa redefinir sua senha com segurança.
+                                        Preencha os campos abaixo para cadastrar um novo apicultor no sistema.
                                     </Text>
 
                                     <View style={styles.inputGroup}>
                                         <TextInput
-                                            value={usuario}
-                                            onChangeText={setUsuario}
+                                            value={nome}
+                                            onChangeText={setNome}
+                                            placeholder="Nome"
+                                            style={styles.input}
+                                        />
+                                        <Feather name="user" size={22} style={styles.inputIcon} />
+                                    </View>
+
+                                    <View style={styles.inputGroup}>
+                                        <TextInput
+                                            value={email}
+                                            onChangeText={setEmail}
                                             placeholder="E-mail"
                                             keyboardType="email-address"
                                             style={styles.input}
@@ -82,9 +100,41 @@ const SolicitarTrocarSenha = () => {
                                         <MaterialIcons name="alternate-email" size={22} style={styles.inputIcon} />
                                     </View>
 
+                                    <View style={styles.inputGroup}>
+                                        <TextInput
+                                            value={password}
+                                            onChangeText={setPassword}
+                                            secureTextEntry={!passwordVisible}
+                                            placeholder="Senha"
+                                            style={styles.input}
+                                        />
+                                        <MaterialIcons
+                                            onPress={() => setPasswordVisible(prev => !prev)}
+                                            name={passwordVisible ? "lock-open" : "lock-outline"}
+                                            size={24}
+                                            style={styles.inputIcon}
+                                        />
+                                    </View>
+
+                                    <View style={styles.inputGroup}>
+                                        <TextInput
+                                            value={confirmarpassword}
+                                            onChangeText={setConfirmarPassword}
+                                            secureTextEntry={!passwordVisible}
+                                            placeholder="Confirmar Senha"
+                                            style={styles.input}
+                                        />
+                                        <MaterialIcons
+                                            onPress={() => setPasswordVisible(prev => !prev)}
+                                            name={passwordVisible ? "lock-open" : "lock-outline"}
+                                            size={24}
+                                            style={styles.inputIcon}
+                                        />
+                                    </View>
+
                                     <View style={styles.cardFooter}>
                                         <TouchableOpacity style={styles.primaryButton} onPress={handleEnviarEmail}>
-                                            <Text style={styles.buttonText}>Solicitar</Text>
+                                            <Text style={styles.buttonText}>Cadastrar</Text>
                                             <MaterialIcons name="chevron-right" size={20} color={colors.white} />
                                         </TouchableOpacity>
                                     </View>
@@ -98,7 +148,7 @@ const SolicitarTrocarSenha = () => {
     );
 };
 
-export default SolicitarTrocarSenha;
+export default CadastrarApicultor;
 const styles = StyleSheet.create({
     // === ROOT ===
     keyboardAvoidingView: {

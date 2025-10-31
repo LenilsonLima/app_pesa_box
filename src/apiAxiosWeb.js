@@ -2,14 +2,14 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigateReset } from './navigationRef';
 
-const Api = axios.create({
+const ApiAxiosWeb = axios.create({
     baseURL: 'https://api-pesagem-chi.vercel.app',
     timeout: 5000,
     headers: { 'Content-Type': 'application/json' } // sem Authorization aqui
 });
 
 // Adiciona token em todos os requests
-Api.interceptors.request.use(
+ApiAxiosWeb.interceptors.request.use(
     async (config) => {
         const token = await AsyncStorage.getItem('@pesa_box_token');
         if (token) {
@@ -21,7 +21,7 @@ Api.interceptors.request.use(
 );
 
 // Interceptor para tratar 401 e 403
-Api.interceptors.response.use(
+ApiAxiosWeb.interceptors.response.use(
     response => response,
     async (error) => {
         if (error.response.data?.retorno.status === 401 || error.response.data?.retorno.status === 403) {
@@ -32,5 +32,5 @@ Api.interceptors.response.use(
     }
 );
 
-export default Api;
+export default ApiAxiosWeb;
 

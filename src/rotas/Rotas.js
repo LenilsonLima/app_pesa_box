@@ -14,6 +14,7 @@ import GraficoPesos from '../pages/listar/pesos/GraficoPesos';
 import AnaliseIA from '../pages/listar/pesos/AnaliseIA';
 import AlterarApicultor from '../pages/alterar/apicultor/AlterarApicultor';
 import { navigationRef } from '../navigationRef';
+import CadastrarApicultor from '../pages/cadastro/apicultor/CadastrarApicultor';
 
 const RootStack = createNativeStackNavigator();
 
@@ -27,6 +28,7 @@ const Rotas = () => {
                     <RootStack.Screen name="Login" component={Login} />
                     <RootStack.Screen name="ConfigurarWifiRaspberry" component={ConfigurarWifiRaspberry} />
                     <RootStack.Screen name="SolicitarTrocarSenha" component={SolicitarTrocarSenha} />
+                    <RootStack.Screen name="CadastrarApicultor" component={CadastrarApicultor} />
                     <RootStack.Screen name="ListarCaixas" component={ListarCaixas} />
                     <RootStack.Screen name="GraficoPesos" component={GraficoPesos} />
                     <RootStack.Screen name="AnaliseIA" component={AnaliseIA} />
